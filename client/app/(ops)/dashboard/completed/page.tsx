@@ -11,11 +11,11 @@ import { formatDate, formatINR } from '@/lib/format';
 import type { BorrowerRef, LoanApplication } from '@/types';
 
 function borrowerName(app: LoanApplication): string {
-  return typeof app.borrower === 'object' ? (app.borrower as BorrowerRef).fullName : app.personalDetails.fullName;
+  return app.borrower !== null && typeof app.borrower === 'object' ? (app.borrower as BorrowerRef).fullName : app.personalDetails.fullName;
 }
 
 function borrowerEmail(app: LoanApplication): string {
-  return typeof app.borrower === 'object' ? (app.borrower as BorrowerRef).email : '—';
+  return app.borrower !== null && typeof app.borrower === 'object' ? (app.borrower as BorrowerRef).email : '—';
 }
 
 function StatCard({ label, value }: { label: string; value: string }): JSX.Element {
