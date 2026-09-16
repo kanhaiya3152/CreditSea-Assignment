@@ -13,7 +13,7 @@ function cookieOptions(): CookieOptions {
   return {
     httpOnly: true,
     secure: isProduction,
-    sameSite: 'lax',
+    sameSite: isProduction ? 'none' : 'lax',
     maxAge: env.cookieMaxAgeMs,
     path: '/',
   };
