@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/Button';
 import type { LoanApplication } from '@/types';
 
 export default function MyLoanPage(): JSX.Element {
-  const { user, loading: authLoading, logout } = useAuth();
+  const { user, logout } = useAuth();
   const router = useRouter();
 
   const [applications, setApplications] = useState<LoanApplication[] | null>(null);
@@ -22,21 +22,17 @@ export default function MyLoanPage(): JSX.Element {
   // only terminal statuses, matching the server-side guard in submitApplication.
   const hasActiveApplication = applications?.some((a) => a.status !== 'REJECTED' && a.status !== 'CLOSED') ?? false;
 
+  // RequireRole in the layout guarantees a signed-in BORROWER by the time this renders.
   useEffect(() => {
-    if (authLoading) return;
-    if (!user) {
-      router.replace('/login');
-      return;
-    }
     api
       .get<{ applications: LoanApplication[] }>('/applications/me')
       .then((data) => setApplications(data.applications))
       .catch(() => setError('Could not load your loan applications. Please refresh the page.'));
-  }, [authLoading, user, router]);
+  }, []);
 
-  const handleLogout = async () => {
-    await logout();
-    router.push('/login');
+  const handleLogout = () => {
+    logout();
+    router.replace('/login');
   };
 
   return (

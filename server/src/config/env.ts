@@ -10,18 +10,33 @@ function required(name: string, fallback?: string): string {
   return value;
 }
 
+/**
+ * Allowed browser origins, as a comma-separated list. Trailing slashes are stripped
+ * because the browser's `Origin` header never has one, and a stray slash in the env
+ * var would otherwise silently fail every CORS check. An empty value allows any
+ * origin: auth is a bearer token rather than a cookie, so a permissive origin can't
+ * be leveraged to ride on a logged-in browser session the way it could with cookies.
+ */
+function parseOrigins(raw: string | undefined): string[] {
+  if (!raw) return [];
+  return raw
+    .split(',')
+    .map((o) => o.trim().replace(/\/+$/, ''))
+    .filter(Boolean);
+}
+
 export const env = {
   port: Number(process.env.PORT ?? 4000),
   nodeEnv: process.env.NODE_ENV ?? 'development',
   mongoUri: required('MONGO_URI', 'mongodb://127.0.0.1:27017/lms'),
   jwtSecret: required('JWT_SECRET'),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN ?? '7d',
-  cookieName: process.env.COOKIE_NAME ?? 'lms_token',
-  cookieMaxAgeMs: Number(process.env.COOKIE_MAX_AGE_MS ?? 7 * 24 * 60 * 60 * 1000),
-  clientOrigin: process.env.CLIENT_ORIGIN ?? 'http://localhost:3000',
-  cloudinaryCloudName: required('CLOUDINARY_CLOUD_NAME'),
-  cloudinaryApiKey: required('CLOUDINARY_API_KEY'),
-  cloudinaryApiSecret: required('CLOUDINARY_API_SECRET'),
+  clientOrigins: parseOrigins(process.env.CLIENT_ORIGIN),
+  // Optional at boot so a missing Cloudinary key degrades to "uploads fail" rather than
+  // crashing the whole process on cold start and taking login down with it.
+  cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME ?? '',
+  cloudinaryApiKey: process.env.CLOUDINARY_API_KEY ?? '',
+  cloudinaryApiSecret: process.env.CLOUDINARY_API_SECRET ?? '',
 };
 
 export const isProduction = env.nodeEnv === 'production';

@@ -1,3 +1,5 @@
+import { getToken } from './session';
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api';
 
 export class ApiClientError extends Error {
@@ -21,13 +23,24 @@ interface RequestOptions {
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = 'GET', body, isFormData = false } = options;
 
-  const res = await fetch(`${API_URL}${path}`, {
-    method,
-    credentials: 'include',
-    headers: isFormData ? undefined : { 'Content-Type': 'application/json' },
-    body: body ? (isFormData ? (body as FormData) : JSON.stringify(body)) : undefined,
-    cache: 'no-store',
-  });
+  const headers: Record<string, string> = {};
+  if (!isFormData) headers['Content-Type'] = 'application/json';
+  const token = getToken();
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  let res: Response;
+  try {
+    res = await fetch(`${API_URL}${path}`, {
+      method,
+      headers,
+      body: body ? (isFormData ? (body as FormData) : JSON.stringify(body)) : undefined,
+      cache: 'no-store',
+    });
+  } catch {
+    // fetch only rejects on a genuine network-level failure (offline, DNS, CORS block),
+    // which would otherwise surface as an opaque "Failed to fetch".
+    throw new ApiClientError(0, 'NETWORK_ERROR', 'Could not reach the server. Check your connection and try again.');
+  }
 
   const isJson = res.headers.get('content-type')?.includes('application/json');
   const data = isJson ? await res.json() : null;

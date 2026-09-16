@@ -17,9 +17,9 @@ export function Topbar({ title, onMenuClick }: { title: string; onMenuClick: () 
   const { user, logout } = useAuth();
   const router = useRouter();
 
-  const handleLogout = async () => {
-    await logout();
-    router.push('/login');
+  const handleLogout = () => {
+    logout();
+    router.replace('/login');
   };
 
   return (

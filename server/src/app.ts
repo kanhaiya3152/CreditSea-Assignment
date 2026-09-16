@@ -1,4 +1,3 @@
-import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express, { Express } from 'express';
 import { env } from './config/env';
@@ -12,9 +11,16 @@ import uploadsRoutes from './routes/uploads.routes';
 export function createApp(): Express {
   const app = express();
 
-  app.use(cors({ origin: env.clientOrigin, credentials: true }));
+  app.use(
+    cors({
+      origin: env.clientOrigins.length > 0 ? env.clientOrigins : true,
+      allowedHeaders: ['Content-Type', 'Authorization'],
+      // Browsers cache the preflight for a day, so the Authorization header doesn't
+      // cost an extra OPTIONS round trip on every single cross-origin call.
+      maxAge: 86400,
+    }),
+  );
   app.use(express.json());
-  app.use(cookieParser());
   app.use(requestLogger);
 
   app.get('/api/health', (_req, res) => {

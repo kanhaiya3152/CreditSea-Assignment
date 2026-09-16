@@ -2,9 +2,11 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { LoadingState } from '@/components/ui/States';
 import type { Role } from '@/types';
 import { useAuth } from './AuthContext';
 
+/** Where each role lands when it has no more specific destination. Single source of truth. */
 export const ROLE_HOME: Record<Role, string> = {
   ADMIN: '/dashboard/sales',
   SALES: '/dashboard/sales',
@@ -14,18 +16,28 @@ export const ROLE_HOME: Record<Role, string> = {
   BORROWER: '/my-loan',
 };
 
+function FullScreenLoader({ label }: { label: string }): JSX.Element {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-bg">
+      <LoadingState label={label} />
+    </div>
+  );
+}
+
 /**
- * Client-side route guard. Frontend and backend live on different domains
- * in production, so the auth cookie set by the backend is host-only and
- * never visible to Next.js edge middleware running on the frontend's own
- * domain - route protection has to happen here, after the app has loaded
- * and asked the backend (via /auth/me) who's signed in.
+ * The only route guard in the app. It runs in the browser rather than in Next.js
+ * middleware because the session lives in localStorage, which edge middleware cannot
+ * read - and because the API is on a different domain, so no cookie reaches the
+ * frontend's own server either. Every API route re-checks the token server-side
+ * regardless, so this is a navigation convenience, not the security boundary.
  */
-export function RequireRole({ roles, children }: { roles: Role[]; children: React.ReactNode }): JSX.Element | null {
+export function RequireRole({ roles, children }: { roles: Role[]; children: React.ReactNode }): JSX.Element {
   const { user, loading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const authorized = !!user && roles.includes(user.role);
+  // ADMIN is an ops superuser: it can open any ops module, but borrower-only routes
+  // still require an actual BORROWER, since they render that user's own loan.
+  const authorized = !!user && (roles.includes(user.role) || (user.role === 'ADMIN' && !roles.includes('BORROWER')));
 
   useEffect(() => {
     if (loading) return;
@@ -38,11 +50,12 @@ export function RequireRole({ roles, children }: { roles: Role[]; children: Reac
     }
   }, [loading, user, authorized, pathname, router]);
 
-  if (loading || !authorized) return null;
+  if (loading || !authorized) return <FullScreenLoader label="Loading..." />;
   return <>{children}</>;
 }
 
-export function GuestOnly({ children }: { children: React.ReactNode }): JSX.Element | null {
+/** Sends an already-signed-in user away from /login and /signup. */
+export function GuestOnly({ children }: { children: React.ReactNode }): JSX.Element {
   const { user, loading } = useAuth();
   const router = useRouter();
 
@@ -52,6 +65,6 @@ export function GuestOnly({ children }: { children: React.ReactNode }): JSX.Elem
     }
   }, [loading, user, router]);
 
-  if (loading || user) return null;
+  if (loading || user) return <FullScreenLoader label="Loading..." />;
   return <>{children}</>;
 }
