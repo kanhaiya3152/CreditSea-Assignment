@@ -4,7 +4,6 @@ import {
   disburseApplication,
   getApplicationPayments,
   getMyApplications,
-  getSalarySlipFile,
   listApplications,
   recordPayment,
   rejectApplication,
@@ -29,6 +28,5 @@ router.patch('/:id/disburse', authMiddleware, requireRole('DISBURSEMENT'), disbu
 router.post('/:id/payments', authMiddleware, requireRole('COLLECTION'), recordPayment);
 // Ownership (owning borrower) is checked inside the controller since it's data-dependent, not role-based.
 router.get('/:id/payments', authMiddleware, getApplicationPayments);
-router.get('/:id/salary-slip', authMiddleware, getSalarySlipFile);
 
 export default router;

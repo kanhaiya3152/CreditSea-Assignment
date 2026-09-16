@@ -2,18 +2,9 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import type { Role } from '@/types';
 import { useAuth } from '@/lib/AuthContext';
+import { ROLE_HOME } from '@/lib/routeGuard';
 import { LoadingState } from '@/components/ui/States';
-
-const ROLE_HOME: Record<Role, string> = {
-  ADMIN: '/dashboard/sales',
-  SALES: '/dashboard/sales',
-  SANCTION: '/dashboard/sanction',
-  DISBURSEMENT: '/dashboard/disbursement',
-  COLLECTION: '/dashboard/collection',
-  BORROWER: '/my-loan',
-};
 
 export default function HomePage(): JSX.Element {
   const { user, loading } = useAuth();

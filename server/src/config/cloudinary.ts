@@ -8,4 +8,7 @@ cloudinary.config({
   secure: true,
 });
 
+export const isCloudinaryConfigured =
+  Boolean(env.cloudinaryCloudName) && Boolean(env.cloudinaryApiKey) && Boolean(env.cloudinaryApiSecret);
+
 export { cloudinary };

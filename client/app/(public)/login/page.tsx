@@ -13,7 +13,7 @@ import type { User } from '@/types';
 function LoginForm(): JSX.Element {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { refresh } = useAuth();
+  const { signIn } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -25,10 +25,12 @@ function LoginForm(): JSX.Element {
     setError(null);
     setLoading(true);
     try {
-      const data = await api.post<{ user: User }>('/auth/login', { email, password });
-      await refresh();
+      // Login returns the token and the user together, so there's no follow-up
+      // /auth/me call standing between the user and the page they asked for.
+      const data = await api.post<{ token: string; user: User }>('/auth/login', { email, password });
+      signIn(data.token, data.user);
       const from = searchParams.get('from');
-      router.push(from && from.startsWith('/') ? from : ROLE_HOME[data.user.role]);
+      router.replace(from && from.startsWith('/') ? from : ROLE_HOME[data.user.role]);
     } catch (err) {
       setError(err instanceof ApiClientError ? err.message : 'Something went wrong. Please try again.');
     } finally {

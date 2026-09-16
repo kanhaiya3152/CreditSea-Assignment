@@ -1,31 +1,10 @@
-import { CookieOptions, Request, Response } from 'express';
-import { env, isProduction } from '../config/env';
+import { Request, Response } from 'express';
 import { User } from '../models/User';
 import { comparePassword, hashPassword, signToken } from '../services/auth.service';
 import { ApiError } from '../utils/ApiError';
 import { asyncHandler } from '../utils/asyncHandler';
 import { logInfo, logWarn } from '../utils/logger';
 import { loginSchema, signupSchema } from '../utils/validation';
-
-const ROLE_COOKIE_NAME = 'lms_role';
-
-function cookieOptions(): CookieOptions {
-  return {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: isProduction ? 'none' : 'lax',
-    maxAge: env.cookieMaxAgeMs,
-    path: '/',
-  };
-}
-
-function setAuthCookies(res: Response, token: string, role: string): void {
-  res.cookie(env.cookieName, token, cookieOptions());
-  // Non-httpOnly companion cookie: lets middleware.ts do a fast client-side
-  // route guard. Never trusted for authorization - every API route re-verifies
-  // the httpOnly JWT server-side regardless of what this cookie claims.
-  res.cookie(ROLE_COOKIE_NAME, role, { ...cookieOptions(), httpOnly: false });
-}
 
 export const signup = asyncHandler(async (req: Request, res: Response) => {
   const { fullName, email, password } = signupSchema.parse(req.body);
@@ -41,10 +20,12 @@ export const signup = asyncHandler(async (req: Request, res: Response) => {
   const user = await User.create({ fullName, email, passwordHash, role: 'BORROWER' });
 
   const token = signToken({ id: user._id.toString(), role: user.role });
-  setAuthCookies(res, token, user.role);
 
   logInfo(`signup succeeded: ${user.email} (${user._id})`);
+  // The token and the user ship together so the client can sign in without a
+  // follow-up /auth/me round trip.
   res.status(201).json({
+    token,
     user: { id: user._id, fullName: user.fullName, email: user.email, role: user.role },
   });
 });
@@ -65,19 +46,12 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
   }
 
   const token = signToken({ id: user._id.toString(), role: user.role });
-  setAuthCookies(res, token, user.role);
 
   logInfo(`login succeeded: ${user.email} (${user.role})`);
   res.status(200).json({
+    token,
     user: { id: user._id, fullName: user.fullName, email: user.email, role: user.role },
   });
-});
-
-export const logout = asyncHandler(async (req: Request, res: Response) => {
-  res.clearCookie(env.cookieName, { ...cookieOptions(), maxAge: undefined });
-  res.clearCookie(ROLE_COOKIE_NAME, { ...cookieOptions(), httpOnly: false, maxAge: undefined });
-  logInfo(`logout: ${req.user?.id ?? 'unknown user'}`);
-  res.status(200).json({ message: 'Logged out.' });
 });
 
 export const me = asyncHandler(async (req: Request, res: Response) => {

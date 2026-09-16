@@ -12,7 +12,7 @@ import type { User } from '@/types';
 
 function SignupForm(): JSX.Element {
   const router = useRouter();
-  const { refresh } = useAuth();
+  const { signIn } = useAuth();
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -25,11 +25,11 @@ function SignupForm(): JSX.Element {
     setError(null);
     setLoading(true);
     try {
-      await api.post<{ user: User }>('/auth/signup', { fullName, email, password });
-      await refresh();
+      const data = await api.post<{ token: string; user: User }>('/auth/signup', { fullName, email, password });
+      signIn(data.token, data.user);
       // Land on the borrower's home, not straight into the wizard - starting an
       // application is something they choose to do, not something signup forces.
-      router.push('/my-loan');
+      router.replace('/my-loan');
     } catch (err) {
       setError(err instanceof ApiClientError ? err.message : 'Something went wrong. Please try again.');
     } finally {

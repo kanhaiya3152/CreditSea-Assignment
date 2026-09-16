@@ -330,19 +330,3 @@ export const getApplicationPayments = asyncHandler(async (req: Request, res: Res
 
   res.status(200).json({ payments, paidTotal, outstandingBalance });
 });
-
-export const getSalarySlipFile = asyncHandler(async (req: Request, res: Response) => {
-  const application = await LoanApplication.findById(req.params.id);
-  if (!application) throw ApiError.notFound('Application not found.');
-
-  const role = req.user!.role;
-  const isOwner = application.borrower.toString() === req.user!.id;
-  const isOps = role === 'ADMIN' || ['SANCTION', 'DISBURSEMENT', 'COLLECTION'].includes(role);
-  if (!isOwner && !isOps) {
-    throw ApiError.forbidden();
-  }
-
-  // Storage is Cloudinary, not local disk - the access-control check above already
-  // gated this, so it's safe to hand the caller straight to the CDN URL.
-  res.redirect(application.salarySlip.filePath);
-});

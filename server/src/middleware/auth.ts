@@ -1,5 +1,4 @@
 import { NextFunction, Request, Response } from 'express';
-import { env } from '../config/env';
 import { verifyToken } from '../services/auth.service';
 import { ApiError } from '../utils/ApiError';
 import { Role } from '../utils/constants';
@@ -13,8 +12,16 @@ declare global {
   }
 }
 
+/**
+ * Auth is a bearer token, not a cookie. The client and the API are deployed on
+ * separate domains, which makes any cookie between them a third-party cookie -
+ * blocked outright by default in incognito and increasingly in normal browsing.
+ * A token the client sends explicitly is unaffected by that, and needs no CORS
+ * credentials handling.
+ */
 export function authMiddleware(req: Request, _res: Response, next: NextFunction): void {
-  const token = req.cookies?.[env.cookieName];
+  const header = req.headers.authorization;
+  const token = header?.startsWith('Bearer ') ? header.slice(7).trim() : undefined;
 
   if (!token) {
     next(ApiError.unauthorized());

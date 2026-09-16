@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { UploadApiResponse } from 'cloudinary';
-import { cloudinary } from '../config/cloudinary';
+import { cloudinary, isCloudinaryConfigured } from '../config/cloudinary';
 import { asyncHandler } from '../utils/asyncHandler';
 import { ApiError } from '../utils/ApiError';
 import { logError, logInfo, logWarn } from '../utils/logger';
@@ -22,6 +22,11 @@ function uploadBufferToCloudinary(buffer: Buffer, publicId: string): Promise<Upl
 }
 
 export const uploadSalarySlipHandler = asyncHandler(async (req: Request, res: Response) => {
+  if (!isCloudinaryConfigured) {
+    logError('salary slip upload attempted with Cloudinary credentials missing', null);
+    throw ApiError.badRequest('File uploads are not configured on this server.', 'UPLOAD_NOT_CONFIGURED');
+  }
+
   if (!req.file) {
     logWarn(`salary slip upload rejected for user ${req.user!.id}: no file in request`);
     throw ApiError.badRequest('No file was uploaded.', 'FILE_REQUIRED');

@@ -2,7 +2,6 @@ import type { ReactNode } from 'react';
 import { FileText } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { API_URL } from '@/lib/api';
 import { formatDate, formatINR } from '@/lib/format';
 import { BRE_RULE_MESSAGES } from '@/lib/constants';
 import type { LoanApplication } from '@/types';
@@ -77,7 +76,7 @@ export function ApplicationDetailModal({
       <div className="border-t border-border py-4">
         <p className="text-caption font-medium uppercase tracking-wide text-muted">Salary slip</p>
         <a
-          href={`${API_URL}/applications/${application._id}/salary-slip`}
+          href={application.salarySlip.filePath}
           target="_blank"
           rel="noreferrer"
           className="mt-1 inline-flex items-center gap-2 text-body font-medium text-brand hover:underline"
