@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Banknote, CircleDollarSign, ClipboardCheck, Users, X } from 'lucide-react';
+import { Banknote, CheckCircle2, CircleDollarSign, ClipboardCheck, Users, X } from 'lucide-react';
 import type { Role } from '@/types';
 import { cn } from '@/lib/utils';
 
@@ -19,6 +19,8 @@ const MODULES: ModuleDef[] = [
   { key: 'sanction', href: '/dashboard/sanction', label: 'Sanction', icon: ClipboardCheck, role: 'SANCTION' },
   { key: 'disbursement', href: '/dashboard/disbursement', label: 'Disbursement', icon: Banknote, role: 'DISBURSEMENT' },
   { key: 'collection', href: '/dashboard/collection', label: 'Collection', icon: CircleDollarSign, role: 'COLLECTION' },
+  // Admin-only: the role filter below never matches ADMIN for a non-admin user.
+  { key: 'completed', href: '/dashboard/completed', label: 'Completed', icon: CheckCircle2, role: 'ADMIN' },
 ];
 
 export function Sidebar({

@@ -11,6 +11,7 @@ const MODULE_ROLE: Record<string, Role> = {
   sanction: 'SANCTION',
   disbursement: 'DISBURSEMENT',
   collection: 'COLLECTION',
+  completed: 'ADMIN',
 };
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }): JSX.Element | null {
