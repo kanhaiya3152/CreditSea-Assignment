@@ -5,11 +5,12 @@ import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
 import { api, ApiClientError } from '@/lib/api';
 import { useAuth } from '@/lib/AuthContext';
+import { GuestOnly } from '@/lib/routeGuard';
 import { Button } from '@/components/ui/Button';
 import { Field, Input } from '@/components/ui/Input';
 import type { User } from '@/types';
 
-export default function SignupPage(): JSX.Element {
+function SignupForm(): JSX.Element {
   const router = useRouter();
   const { refresh } = useAuth();
 
@@ -92,5 +93,13 @@ export default function SignupPage(): JSX.Element {
         </p>
       </div>
     </main>
+  );
+}
+
+export default function SignupPage(): JSX.Element {
+  return (
+    <GuestOnly>
+      <SignupForm />
+    </GuestOnly>
   );
 }

@@ -5,18 +5,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { FormEvent, Suspense, useState } from 'react';
 import { api, ApiClientError } from '@/lib/api';
 import { useAuth } from '@/lib/AuthContext';
+import { GuestOnly, ROLE_HOME } from '@/lib/routeGuard';
 import { Button } from '@/components/ui/Button';
 import { Field, Input } from '@/components/ui/Input';
-import type { Role, User } from '@/types';
-
-const ROLE_HOME: Record<Role, string> = {
-  ADMIN: '/dashboard/sales',
-  SALES: '/dashboard/sales',
-  SANCTION: '/dashboard/sanction',
-  DISBURSEMENT: '/dashboard/disbursement',
-  COLLECTION: '/dashboard/collection',
-  BORROWER: '/my-loan',
-};
+import type { User } from '@/types';
 
 function LoginForm(): JSX.Element {
   const router = useRouter();
@@ -96,8 +88,10 @@ function LoginForm(): JSX.Element {
 
 export default function LoginPage(): JSX.Element {
   return (
-    <Suspense>
-      <LoginForm />
-    </Suspense>
+    <GuestOnly>
+      <Suspense>
+        <LoginForm />
+      </Suspense>
+    </GuestOnly>
   );
 }
