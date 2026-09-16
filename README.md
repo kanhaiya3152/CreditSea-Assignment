@@ -1,3 +1,7 @@
+# DEMO VIDEO - [Link](https://drive.google.com/file/d/1MIQjWqqg6hTBehX3akcYxgxtrvis5RsE/view?usp=drive_link)
+
+# Deployed Url - [Link](https://assign-credit-sea.vercel.app/)
+
 # LMS — Loan Management System
 
 A full-stack lending platform with a borrower-facing loan application wizard and a role-gated operations dashboard (Sales, Sanction, Disbursement, Collection, Admin). Built for the Indian lending context: PAN-based KYC, ₹ currency, simple-interest loan math.
